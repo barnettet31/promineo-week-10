@@ -29,8 +29,9 @@ const createElement = function (item) {
     const container = document.createElement("li");
     container.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
     const { id, toDoDescription, toDoName } = item;
+    container.setAttribute("data-id", id);
     const construtor = `<div
-             data-id="${id}"
+             "
               class="list-group-item w-100"
               >
               <div class="d-flex w-100 justify-content-between">
