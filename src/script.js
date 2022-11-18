@@ -26,39 +26,34 @@ class ToDoList {
     }
 }
 const createElement = function (item) {
-    const row = document.createElement("tr");
+    const container = document.createElement("li");
+    container.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
     const { id, toDoDescription, toDoName } = item;
-    row.classList.add("row");
-    row.setAttribute("data-id", id);
-    let td1 = document.createElement("td");
-    td1.textContent = toDoName;
-    td1.classList.add('col');
-    row.appendChild(td1);
-    let td2 = document.createElement("td");
-    td2.classList.add('col');
-    td2.textContent = toDoDescription;
-    let deleteTd = document.createElement("td");
-    deleteTd.classList.add('col');
-    let deleteButton = document.createElement("button");
-    deleteButton.classList.add("btn", "btn-danger");
-    deleteButton.textContent = 'Delete This';
-    deleteButton.addEventListener("click", () => {
-        myToDoList.removeToDoItem(id);
-    });
-    deleteTd.appendChild(deleteButton);
-    row.appendChild(td1);
-    row.appendChild(td2);
-    row.appendChild(deleteTd);
-    return row;
+    const construtor = `<div
+             data-id="${id}"
+              class="list-group-item w-100"
+              >
+              <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">${toDoName}</h5>
+                <button data-delete="${id}" class="btn btn-danger">Delete</small>
+              </div>
+              <p class="mb-1">${toDoDescription}</p>
+              
+            </div>`;
+    container.innerHTML = construtor;
+    return container;
 };
 const handleUpdateToDos = (data, action, target) => {
-    var _a;
+    var _a, _b;
     switch (action) {
         case "add":
             target.appendChild(createElement(data));
+            (_a = document.querySelector(`[data-delete="${data.id}"]`)) === null || _a === void 0 ? void 0 : _a.addEventListener('click', () => {
+                myToDoList.removeToDoItem(data.id);
+            });
             break;
         case "remove":
-            (_a = document.querySelector(`[data-id=${data.id}]`)) === null || _a === void 0 ? void 0 : _a.remove();
+            (_b = document.querySelector(`[data-id="${data.id}"]`)) === null || _b === void 0 ? void 0 : _b.remove();
             break;
         default:
             return;
