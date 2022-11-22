@@ -11,7 +11,7 @@ interface IToDoItem {
 interface IToDoItemCls extends IToDoItem {
   id: string;
 }
-class ToDoItem {
+export class ToDoItem {
   id:string;
   name:string;
   description:string;
@@ -126,7 +126,7 @@ class ToDoItem {
     })
   }
 }
-class ToDoList {
+export class ToDoList {
   toDoList: ToDoItem[];
   container: HTMLElement;
   constructor(container: HTMLElement, defaultValues:IToDoItem[] = []) {
@@ -180,7 +180,7 @@ const currentTodos = localStorage.getItem('todos');
 const toDosParsed = currentTodos? JSON.parse(currentTodos) as IToDoItem[] : [];
 const myToDoList = new ToDoList(myTableContainer, toDosParsed);
 myToDoList.render();
-myForm?.addEventListener("submit", (event) => {
+export function formEventHandler(event:SubmitEvent) {
   event.preventDefault();
   const myFormData = new FormData(myForm) as unknown as Iterable<
     [IToDoItem, FormDataEntryValue]
@@ -193,4 +193,5 @@ myForm?.addEventListener("submit", (event) => {
   };
   myToDoList.addToDoItem(objectToAdd);
   myForm.reset();
-});
+};
+myForm?.addEventListener("submit", formEventHandler);
