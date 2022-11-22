@@ -10,6 +10,7 @@
       rel="stylesheet"
       integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi"
       crossorigin="anonymous" />
+    <link rel="stylesheet" href="./styles/prism.css" />
   </head>
   <body>
     <header>
@@ -48,12 +49,346 @@
         </div>
       </nav>
     </header>
-    <main>
-     
+    <main class="container pt-4 pb-10">
+      <div class="accordion" id="accordionExample">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingOne">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapseOne"
+              aria-expanded="true"
+              aria-controls="collapseOne">
+              How did you create a todo?
+            </button>
+          </h2>
+          <div
+            id="collapseOne"
+            class="accordion-collapse collapse"
+            aria-labelledby="headingOne">
+            <div class="accordion-body">
+              <p class="mb-2">I converted the form data into ToDo items!</p>
+              <p class="mb-2">
+                Basically at the start of the app, I create a TODO list that
+                keeps track of all of my TODOS internally.
+              </p>
+              <p class="mb-2">
+                The submission of the form first creates a TODO item, and then
+                appends it to the list via a setter method.
+              </p>
+
+              <p class="mb-2">I used the following code to add a TODO:</p>
+              <pre class="rounded"><code class="language-typescript">const myForm = document.querySelector("#toDoForm") as HTMLFormElement; // HTMLFormElement
+ myForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const myFormData = new FormData(myForm) as unknown as Iterable<
+    [IToDoItem, FormDataEntryValue]
+  >;
+  const myFormDataObject: IToDoItem = Object.fromEntries(myFormData);
+  const objectToAdd: IToDoItemCls = {
+    toDoName: myFormDataObject.toDoName,
+    toDoDescription: myFormDataObject.toDoDescription,
+    id: Date.now().toString(36) + Math.random().toString(36).substring(2),
+  };
+  myToDoList.addToDoItem(objectToAdd);
+  myForm.reset();
+});
+                </code></pre>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingTwo">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapseTwo"
+              aria-expanded="false"
+              aria-controls="collapseTwo">
+              How did I render them to the page? Also, how did you persist them between page loads?
+            </button>
+          </h2>
+          <div
+            id="collapseTwo"
+            class="accordion-collapse collapse"
+            aria-labelledby="headingTwo"
+            data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+              <p class="mb-2">Well actually each TODO item manages it's own render!</p>
+              <p class="mb-2">
+              Basically, when a todo is created, it has a method stored on it called <code>render()</code>. 
+              </p>
+              <p class="mb-2">
+               When a todo is created, the todo list loops through all the todos and runs that method on each of them. 
+              </p>
+              <p class="mb-2">
+               That method generates the HTML of the todo and appends it to the parent!
+              </p>
+              <p class="mb-2">As far as the local storage?</p>
+              <p class="mb-2">Well whenever one is either created, updated, or deleted, I pass a reference to the parent todo list to the TODO items, and those use that method to update the local storage item 'todos' with the JSON stringify of the elements that are needed to construct the todos on load. You cannot send some things like the reference to the parent.</p>
+              <p class="mb-2">Here's the code for that:</p>
+              <pre
+                class="rounded"><code class="language-typescript">class ToDoItem {
+  id:string;
+  name:string;
+  description:string;
+  parentEl:HTMLElement;
+  parentClassRef:ToDoList;
+  constructor(id:string, name:string, description:string, parentEl:HTMLElement, parentRef:ToDoList){
+    this.id = id;
+    this.name = name;
+    this.description = description;
+    this.parentEl = parentEl; 
+    this.parentClassRef = parentRef;
+  }
+  render(){
+    const {newHtml, ref} = this.generateHTML();
+    if(ref){
+      this.parentEl.replaceChild(newHtml, ref);
+      return this.addEventListeners();
+    }
+    this.parentEl.appendChild(newHtml)
+    this.addEventListeners();
+  }
+  update(name:string, description:string){
+    this.name = name;
+    this.description = description;
+    this.render();
+    this.parentClassRef.updateLocalStorage();
+    
+  }
+  generateHTML(){
+    const ref = document.querySelector(`#${this.id}`); 
+    const newDiv = document.createElement('div');
+    newDiv.classList.add('card', 'p-4', 'mt-3');
+    newDiv.id = this.id;
+    const innerHtmlString = `
+              <ul class="nav nav-pills d-flex justify-content-between">
+                <div class="d-flex">
+                  <li class="nav-item">
+                    <a
+                      class="nav-link active"
+                      data-bs-toggle="pill"
+                      href="#todo-${this.id}"
+                      >ToDo</a
+                    >
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="pill" href="#edit-${this.id}"
+                      >Update</a
+                    >
+                  </li>
+                </div>
+                <button id="delete-${this.id}" class="btn btn-danger">Delete</button>
+              </ul>
+              <div class="tab-content">
+                <div class="tab-pane mt-4 active" id="todo-${this.id}">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">${this.name}</h5>
+                      <p class="card-text">${this.description}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="tab-pane container fade" id="edit-${this.id}">
+                  <form class="card container mt-4 py-4" id="update-${this.id}">
+                    <div class="mb-3">
+                      <label for="exampleFormControlInput1" class="form-label"
+                        >To Do</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        name="name" value="${this.name}" />
+                    </div>
+                    <div class="mb-3">
+                      <label
+                        for=""
+                        class="form-label"
+                        ></label
+                      >
+                      <textarea
+                        class="form-control"
+                        name="description"
+                        rows="3">${this.description}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
+                </div>
+              </div>
+            `
+    newDiv.innerHTML = innerHtmlString;
+              
+    return{
+      newHtml:newDiv,
+      ref:ref,
+    }
+  }
+  addEventListeners(){
+    const deleteButton = document.querySelector(`#delete-${this.id}`);
+    console.log(deleteButton)
+    const updateForm = document.querySelector(`#update-${this.id}`);
+    deleteButton?.addEventListener('click', ()=>{
+      myToDoList.removeToDoItem(this.id);
+    });
+    updateForm?.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const myForm = e.target as HTMLFormElement;
+      const { name, description } = Object.fromEntries(
+        new FormData(myForm) as unknown as Iterable<
+          [{ name: string; descrption: string }, FormDataEntryValue]
+        >
+      ); ;
+      this.update(name, description);
+    })
+  }
+}
+class ToDoList {
+  toDoList: ToDoItem[];
+  container: HTMLElement;
+  constructor(container: HTMLElement, defaultValues:IToDoItem[] = []) {
+    this.container = container;
+    this.toDoList = defaultValues.map((todo) => {
+      return new ToDoItem(
+        todo.id,
+        todo.toDoName,
+        todo.toDoDescription,
+        myTableContainer,
+        this
+      );
+    });
+  }
+  addToDoItem(toDoItem: IToDoItemCls) {
+    const newTodo = new ToDoItem(
+      toDoItem.id,
+      toDoItem.toDoName,
+      toDoItem.toDoDescription,
+      this.container,
+      this
+    );
+    this.toDoList.push(newTodo);
+    this.updateLocalStorage();
+    this.render();
+  }
+  removeToDoItem(id: string) {
+    const removeThis = document.querySelector(`#${id}`);
+    removeThis?.remove();
+    const newTodos = this.toDoList.filter((todo) => todo.id != id);
+    this.toDoList = newTodos;
+    this.updateLocalStorage();
+  }
+  updateLocalStorage(){
+    console.log(this.toDoList);
+    const jsonString = this.toDoList.map(({ id, name, description }) => {
+      return { id, toDoName:name, toDoDescription:description };
+    });
+        localStorage.setItem("todos", JSON.stringify(jsonString));
+
+  }
+  render() {
+    this.toDoList.forEach((todo) => {
+      todo.render();
+    });
+  }
+}</code></pre>
+              
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingThree">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapseThree"
+              aria-expanded="false"
+              aria-controls="collapseThree">
+              What tests did I run?
+            </button>
+          </h2>
+          <div
+            id="collapseThree"
+            class="accordion-collapse collapse"
+            aria-labelledby="headingThree"
+            data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+              <p class="mb-2">
+               
+              </p>
+              <pre
+                class="rounded"><code contenteditable class="language-typescript"></code></pre>
+              <p class="mt-2 mb-2">
+                
+              </p>
+              <pre class="rounded"><code class="language-typescript">
+</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
+    <footer class="py-4 fixed-bottom">
+      <div class="row container mx-auto">
+        <div class="col-sm">
+          <p class="small-font-size">Coded by Travis Barnette</p>
+        </div>
+        <div
+          class="col-sm d-flex justify-content-sm-start justify-content-lg-end gap-4">
+          <a
+            href="https://github.com/barnettet31"
+            class=""
+            target="_blank"
+            referrerpolicy="no-referrer">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              class="bi bi-github"
+              viewBox="0 0 16 16">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" /></svg
+          ></a>
+          <a
+            href="https://www.linkedin.com/in/barnettetravis31/"
+            class=""
+            target="_blank"
+            referrerpolicy="no-referrer"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              class="bi bi-linkedin"
+              viewBox="0 0 16 16">
+              <path
+                d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z" /></svg
+          ></a>
+          <a
+            href="https://twitter.com/TravCodez"
+            class=""
+            target="_blank"
+            referrerpolicy="no-referrer"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              class="bi bi-twitter"
+              viewBox="0 0 16 16">
+              <path
+                d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" /></svg
+          ></a>
+        </div>
+      </div>
+    </footer>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
       crossorigin="anonymous"></script>
+    <script src="../src/prism.js"></script>
   </body>
 </html>
