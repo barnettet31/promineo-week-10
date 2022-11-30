@@ -161,7 +161,6 @@ export class ToDoList {
     this.updateLocalStorage();
   }
   updateLocalStorage(){
-    console.log(this.toDoList);
     const jsonString = this.toDoList.map(({ id, name, description }) => {
       return { id, toDoName:name, toDoDescription:description };
     });
