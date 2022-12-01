@@ -19,7 +19,7 @@ Coding Steps:
 	•	A Bootstrap styled form that allows a user to add a new row to the table when clicking on submit.
 
 ### Links
-- Live Site URL: [Live Site On GitHub Pages](https://barnettet31.github.io/promineo-week-10/index.html)
+- Live Site URL: [Live Site On GitHub Pages](https://barnettet31.github.io/promineo-week-10/)
 
 ## My process
 I started with the same basic layout as last week's app, honestly I was less worried about the design and much more on the functionality this week. 
